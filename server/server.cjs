@@ -195,6 +195,13 @@ app.post('/api/queue/join', (req, res) => {
     res.json({ count: matchmakingQueue.length });
 });
 
+app.post('/api/queue/leave', (req, res) => {
+    const { username } = req.body;
+    matchmakingQueue = matchmakingQueue.filter(u => u.username !== username);
+    console.log(`User ${username} left queue. Queue size: ${matchmakingQueue.length}`);
+    res.json({ message: "Left queue", count: matchmakingQueue.length });
+});
+
 app.get('/api/queue/status/:username', (req, res) => {
     const { username } = req.params;
     const match = activeMatches.find(m => [...m.blue, ...m.red].some(p => p.username === username));

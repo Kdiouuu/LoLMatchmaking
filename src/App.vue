@@ -246,6 +246,8 @@ onMounted(() => {
   if (savedUser) {
     currentUser.value = JSON.parse(savedUser);
     isLoggedIn.value = true;
+    // Vérifier immédiatement si on est en file ou en match
+    startQueuePolling();
   }
 });
 
@@ -326,6 +328,7 @@ const startQueuePolling = () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/queue/status/${currentUser.value.username}`);
       queueCount.value = response.data.count;
+      isInQueue.value = response.data.isInQueue; // Mise à jour de l'état local depuis le serveur
       
       if (response.data.match) {
         matchFound.value = true;

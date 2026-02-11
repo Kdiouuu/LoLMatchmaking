@@ -175,9 +175,15 @@ app.post('/api/queue/join', (req, res) => {
     const { username } = req.body;
     const users = readUsers();
     const user = users.find(u => u.username === username);
-    if (!user) return res.status(404).send();
+    if (!user) return res.status(404).json({ message: "User not found" });
+
     const inActiveMatch = activeMatches.some(m => m.status === 'playing' && [...m.blue, ...m.red].some(p => p.username === username));
     if (inActiveMatch) return res.status(403).json({ message: "Match in progress" });
+
+    if (matchmakingQueue.some(p => p.username === username)) {
+        return res.status(400).json({ message: "Already in queue" });
+    }
+
     matchmakingQueue.push({
         username: user.username,
         mmr: user.internalMMR || 700,
@@ -190,8 +196,15 @@ app.post('/api/queue/join', (req, res) => {
 });
 
 app.get('/api/queue/status/:username', (req, res) => {
-    const match = activeMatches.find(m => [...m.blue, ...m.red].some(p => p.username === req.params.username));
-    res.json({ count: matchmakingQueue.length, match: match || null });
+    const { username } = req.params;
+    const match = activeMatches.find(m => [...m.blue, ...m.red].some(p => p.username === username));
+    const isInQueue = matchmakingQueue.some(p => p.username === username);
+    
+    res.json({ 
+        count: matchmakingQueue.length, 
+        match: match || null,
+        isInQueue: isInQueue
+    });
 });
 
 app.post('/api/match/swap-team', (req, res) => {
